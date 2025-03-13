@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  vllm:
+    build: ./vllm_server
+    restart: always
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+    volumes:
+      - model_cache:/root/.cache/huggingface
+    networks:
+      - vllm_network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ "gpu" ]
+
+  gradio_app:
+    build: ./gradio_app
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - vllm
+    networks:
+      - vllm_network
+
+networks:
+  vllm_network:
+
+
+volumes:
+  model_cache:
